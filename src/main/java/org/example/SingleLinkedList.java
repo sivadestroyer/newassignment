@@ -165,6 +165,9 @@ public class SingleLinkedList<T> {
         }
         return false;
     }
+    public void sortedmerge(SingleLinkedList t, SingleLinkedList k ){
+
+    }
     public static class NoSuchElementException extends RuntimeException {
 
         public NoSuchElementException() {
@@ -174,7 +177,11 @@ public class SingleLinkedList<T> {
             super(s);
 }
     }
-
+    public void clear(){
+        first=null;
+        last=null;
+        size=0;
+    }
 
 
     public static void main(String[] args) {
