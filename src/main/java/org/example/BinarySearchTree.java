@@ -1,6 +1,8 @@
-package org.example;
 
-public class BinarySearchTree< T extends Comparable<T>> {
+package org.example;
+import java.util.List;
+import java.util.ArrayList;
+public class BinarySearchTree<T extends Comparable<T>> {
 
     private class Node {
         T data;
@@ -24,17 +26,20 @@ public class BinarySearchTree< T extends Comparable<T>> {
 
     public BinarySearchTree() {
 
-        this.root= null;
+        this.root = null;
     }
 
     public void insert(T data) {
         Node newnode = new Node(data);
-        if(root== null){
-            root=newnode;
+
+        if (root == null) {
+            root = newnode;
             return;
         }
-        Node current=root;
-        Node parent= null;
+
+        Node current = root;
+        Node parent = null;
+
         while (true) {
             parent = current;
             int comparison = data.compareTo(current.data);
@@ -57,61 +62,70 @@ public class BinarySearchTree< T extends Comparable<T>> {
         }
     }
 
-    public void inorder() {
-        inorderhelp(root);
-        System.out.println();
+    public List<T> inorder() {
+        List<T> result = new ArrayList<>();
+        inorderHelp(root,result);
+        return result;
     }
-    private void inorderhelp(Node current) {
-        if (current!= null) {
-            inorderhelp(current.left);
-            System.out.print(current.data + " ");
-            inorderhelp(current.right);
+
+    private void inorderHelp(Node current, List<T> result) {
+
+        if (current == null) return;
+        inorderHelp(current.left,result);
+        result.add(current.data);
+        inorderHelp(current.right,result);
+
+    }
+
+    public List<T> preorder() {
+        List<T> result = new ArrayList<>();
+        preorderhelp(root,result);
+        return result;
+    }
+
+    private void preorderhelp(Node current, List<T> result) {
+        if (current != null) {
+            result.add(current.data);
+            preorderhelp(current.left,result);
+            preorderhelp(current.right,result);
+        }
+
+    }
+
+    public List<T> postorder() {
+        List<T> result = new ArrayList<>();
+        postorderhelp(root,result);
+        return result;
+    }
+
+    private void postorderhelp(Node current,List<T> result) {
+        if (current != null) {
+            postorderhelp(current.left,result);
+            postorderhelp(current.right,result);
+            result.add(current.data);
         }
     }
 
-    public void preorder() {
-        preorderhelp(root);
-        System.out.println();
-    }
- private void preorderhelp(Node current) {
-        if (current!= null) {
-            System.out.print(current.data + " ");
-            preorderhelp(current.left);
-            preorderhelp(current.right);
-        }
-
- }
-
-    public void postorder() {
-        postorderhelp(root);
-        System.out.println();
-    }
-    private void postorderhelp(Node current) {
-        if (current!= null) {
-            postorderhelp(current.left);
-            postorderhelp(current.right);
-            System.out.print(current.data + " ");
-        }
-    }
-
-    public void find(T data){
+    public Boolean find(T data) {
         Node current = root;
-        while (current!= null) {
+        while (current != null) {
             int comparison = data.compareTo(current.data);
             if (comparison < 0) {
                 current = current.left;
             } else if (comparison > 0) {
                 current = current.right;
             } else {
-                System.out.println(data + " found");
-                return;
+
+                return true;
             }
         }
-        System.out.println(data + " not found");
+        return false;
     }
-    public void delete(T data){
+
+    public void delete(T data) {
         root = deleteNode(root, data);
     }
+
     private Node deleteNode(Node root, T data) {
         if (root == null) return root;
         int comparison = data.compareTo(root.data);
@@ -120,9 +134,9 @@ public class BinarySearchTree< T extends Comparable<T>> {
         } else if (comparison > 0) {
             root.right = deleteNode(root.right, data);
         } else {
-            if (root.left == null){
-                return root.right;}
-            else if (root.right == null)
+            if (root.left == null) {
+                return root.right;
+            } else if (root.right == null)
                 return root.left;
 
             root.data = minValue(root.right);
@@ -130,90 +144,97 @@ public class BinarySearchTree< T extends Comparable<T>> {
         }
         return root;
     }
+
     private T minValue(Node node) {
         T minValue = node.data;
-        while (node.left!= null) {
+        while (node.left != null) {
             minValue = node.left.data;
             node = node.left;
         }
         return minValue;
     }
-    public void findmin(){
-        Node current =root;
-        T minvalue= current.data;
-        while (current.left!=null){
+
+    public T findmin() {
+        Node current = root;
+        T minvalue = current.data;
+        while (current.left != null) {
             minvalue = current.left.data;
-            current=current.left;
+            current = current.left;
         }
-        System.out.println("Minimum value is " + minvalue);
+        return minvalue;
     }
 
-    public void findmax(){
-        Node current=root;
-        T maxvalue= current.data;
-        while(current.right!=null){
-            maxvalue=current.right.data;
-            current=current.right;
+    public T findmax() {
+        Node current = root;
+        T maxvalue = current.data;
+        while (current.right != null) {
+            maxvalue = current.right.data;
+            current = current.right;
         }
-        System.out.println("maximum value is " + maxvalue);
+        return maxvalue;
     }
-    public void height(){
-        System.out.println("Height of the tree is " + height(root));
+
+    public int height() {
+        return height(root);
     }
-    private int height(Node root){
-        if(root==null){
+
+    private int height(Node root) {
+        if (root == null) {
             return 0;
         }
-        int leftHeight=height(root.left);
-        int rightHeight=height(root.right);
-        return Math.max(leftHeight,rightHeight)+1;
+        int leftHeight = height(root.left);
+        int rightHeight = height(root.right);
+        return Math.max(leftHeight, rightHeight) + 1;
     }
-    public void balance(){
-        int left=leftHeight(root);
-        int right=rightHeight(root);
-        if (Math.abs(left-right)<=1){
-            System.out.println("balanced");
-        } else {
-            System.out.println("unbalanced");
-        }
+
+    public Boolean balance() {
+        int left = leftHeight(root);
+        int right = rightHeight(root);
+        return Math.abs(left - right) <= 1;
     }
-    private int leftHeight(Node current){
-        if(current==null){
+
+    private int leftHeight(Node current) {
+        if (current == null) {
             return 0;
         }
-        return leftHeight(current.left)+1;
+        return leftHeight(current.left) + 1;
     }
-    private int rightHeight(Node current){
-        if (current==null){
+
+    private int rightHeight(Node current) {
+        if (current == null) {
             return 0;
         }
-        return rightHeight(current.right)+1;
+        return rightHeight(current.right) + 1;
     }
-    public void isBst(){
-        isBst(root);
+
+    public boolean isBst() {
+        return isBst(root);
     }
-    private void isBst(Node node){
-        T current=node.data;
-        while(node.left!= null){
-            int comparison=current.compareTo(node.left.data);
-            if (comparison<0){
-                System.out.println("not balanced");
+
+    private boolean isBst(Node node) {
+        T current = node.data;
+        while (node.left != null) {
+            int comparison = current.compareTo(node.left.data);
+            if (comparison < 0) {
+                return false;
             }
-            node=node.left;
+            node = node.left;
         }
-        while(node.right!=null){
-            int comparison=current.compareTo(node.right.data);
-            if (comparison>0){
-                System.out.println("not balanced");
+        while (node.right != null) {
+            int comparison = current.compareTo(node.right.data);
+            if (comparison > 0) {
+                return false;
             }
-            node=node.right;
+            node = node.right;
         }
+        return true;
     }
-  public static void main(String[] args) {
-        int[] nums = {14, 2, 40, 9, 31, 25, 18,5};
+
+    public static void main(String[] args) {
+        int[] nums = {14, 2, 40, 9, 31, 25, 18, 5};
 
         BinarySearchTree<Integer> bst = new BinarySearchTree<>();
-        for(int n : nums ) {
+        for (int n : nums) {
             bst.insert(n);
         }
 
@@ -228,5 +249,5 @@ public class BinarySearchTree< T extends Comparable<T>> {
         bst.height();
         bst.balance();
         bst.delete(40);
-}
+    }
 }
