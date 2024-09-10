@@ -1,0 +1,8 @@
+2024-09-10 17:04:32 - TimestampedFileLogger: First log message
+2024-09-10 17:04:32 - TimestampedFileLogger: Second log message
+2024-09-10 17:06:43 - TimestampedFileLogger: First log message
+2024-09-10 17:06:43 - TimestampedFileLogger: Second log message
+2024-09-10 17:08:44 - TimestampedFileLogger: First log message
+2024-09-10 17:08:44 - TimestampedFileLogger: Second log message
+2024-09-10 17:11:00 - TimestampedFileLogger: First log message
+2024-09-10 17:11:00 - TimestampedFileLogger: Second log message
