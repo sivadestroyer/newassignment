@@ -1,0 +1,2 @@
+2024-09-10 17:11:35 - TimestampedFileLogger: First log message
+2024-09-10 17:11:35 - TimestampedFileLogger: Second log message
