@@ -27,13 +27,14 @@ public class personSerializable {
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
+
         return person;
     }
 
     public static void main(String[] args) {
         Person person = new Person("John Doe", 25, "123 Main St");
-        serialize(person, "person.ser");
-        Person deserializedPerson = deserialize("person.ser");
+        serialize(person, "/home/sivabala/IdeaProjects/newassignment/src/main/java/com/zeetaminds/io/person.ser");
+        Person deserializedPerson = deserialize("/home/sivabala/IdeaProjects/newassignment/src/main/java/com/zeetaminds/io/person.ser");
         System.out.println(deserializedPerson);
     }
 }
