@@ -1,6 +1,7 @@
-package com.zeetaminds.io;
+package com.zeetaminds.io.Logger;
+
 import java.io.FileWriter;
-import java.io.IOException;
+
 public class FileLogger extends Logger {
     private String filename;
     public FileLogger(String filename) {

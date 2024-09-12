@@ -1,11 +1,12 @@
-package com.zeetaminds.io;
+package com.zeetaminds.io.Logger;
+
 public class LoggerSystemDemo {
     public static void main(String[] args) {
         // FileLogger logs to "log.txt"
-        Logger fileLogger = new FileLogger("/home/sivabala/IdeaProjects/newassignment/src/main/java/com/zeetaminds/io/log.txt");
+        Logger fileLogger = new FileLogger("/home/sivabala/IdeaProjects/newassignment/src/main/java/com/zeetaminds/io/Logger/log.txt");
 
         // TimestampedFileLogger logs to "timestamped_log.txt"
-        Logger timestampedLogger = new TimeStampedFileLogger("/home/sivabala/IdeaProjects/newassignment/src/main/java/com/zeetaminds/io/timestamped_log.txt");
+        Logger timestampedLogger = new TimeStampedFileLogger("/home/sivabala/IdeaProjects/newassignment/src/main/java/com/zeetaminds/io/Logger/timestamped_log.txt");
 
         // ConsoleLogger logs to the console
         Logger consoleLogger = new ConsoleLogger();

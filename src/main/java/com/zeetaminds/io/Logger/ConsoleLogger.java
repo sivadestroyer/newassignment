@@ -1,4 +1,4 @@
-package com.zeetaminds.io;
+package com.zeetaminds.io.Logger;
 
 public class ConsoleLogger extends Logger {
     public void log(String message) {

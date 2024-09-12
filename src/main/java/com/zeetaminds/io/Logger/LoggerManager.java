@@ -1,4 +1,4 @@
-package com.zeetaminds.io;
+package com.zeetaminds.io.Logger;
 
 public class LoggerManager {
     private Logger logger;
@@ -12,4 +12,6 @@ public class LoggerManager {
     public void logMessage(String message) {
         logger.log(message);
     }
+
+
 }

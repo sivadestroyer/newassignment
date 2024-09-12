@@ -1,9 +1,7 @@
-package com.zeetaminds.io;
+package com.zeetaminds.io.Logger;
 
 import java.util.Date;
 import java.text.SimpleDateFormat;
-
-import com.zeetaminds.io.Logger;
 
 public class TimeStampedFileLogger extends FileLogger {
     public TimeStampedFileLogger(String filename) {

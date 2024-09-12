@@ -1,0 +1,4 @@
+serialized
+serialized
+deserialized
+Name: John Doe, Age: 25, Address: 123 Main St
