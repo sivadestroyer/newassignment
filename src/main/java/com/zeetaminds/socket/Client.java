@@ -21,7 +21,7 @@ public class Client {
         try {
             InputStreamReader isr = new InputStreamReader(System.in);
             br = new BufferedReader(isr);
-            client = new Socket("localhost", 8888);
+            client = new Socket("192.168.1.9", 8888);
             dis = new DataInputStream(client.getInputStream());
             dos = new DataOutputStream(client.getOutputStream());
         } catch (Exception e) {
@@ -30,21 +30,16 @@ public class Client {
 
         while (true) {
             try {
-                System.out.println("\nPlease Make a Choice: ");
-                System.out.println("1. Send file");
-                System.out.println("2. Receive file");
-                System.out.println("3. List available files on server");
-                System.out.print("Your Choice: ");
                 inputFromUser = br.readLine();
-                int i = Integer.parseInt(inputFromUser);
-                switch (i) {
-                    case 1:
-                        sendFile();
+                String[] b = inputFromUser.split(" ",2);
+                switch (b[0]) {
+                    case "put":
+                        sendFile(b[1]);
                         break;
-                    case 2:
-                        receiveFile();
+                    case "get":
+                        receiveFile(b[1]);
                         break;
-                    case 3:
+                    case "list":
                         listFiles();
                         break;
                     default:
@@ -56,13 +51,11 @@ public class Client {
         }
     }
 
-    public void sendFile() {
+    public void sendFile(String filename) {
         try {
-            String filename = "", filedata = "";
+            String filedata = "";
             File file;
             byte[] data;
-            System.out.print("Enter the filename: ");
-            filename = br.readLine();
             file = new File(filename);
             if (file.isFile()) {
                 fis = new FileInputStream(file);
@@ -82,11 +75,10 @@ public class Client {
         }
     }
 
-    public void receiveFile() {
+    public void receiveFile(String filename) {
         try {
-            String filename = "", filedata = "";
-            System.out.print("Enter the filename: ");
-            filename = br.readLine();
+             String filedata = "";
+
             dos.writeUTF("DOWNLOAD_FILE");
             dos.writeUTF(filename);
             filedata = dis.readUTF();

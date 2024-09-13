@@ -13,7 +13,7 @@ public class PersonSerializable {
 
     // Generalized deserialize method using InputStream
     public Object deserialize(InputStream is) throws IOException, ClassNotFoundException {
-        Object obj = null;
+        Object obj;
         ObjectInputStream in = new ObjectInputStream(is);
             obj = in.readObject();
             logger.log("deserialized");
@@ -34,5 +34,13 @@ public class PersonSerializable {
             deserializedPerson = (Person)p.deserialize(fis);
 
         p.logger.log(String.valueOf(deserializedPerson));
+
+        p.serialize(new Test("giri"), new ByteArrayOutputStream());
+    }
+
+    static class Test {
+        private final String name;
+
+        Test(String name) { this.name = name; }
     }
 }
