@@ -5,19 +5,19 @@ public class PersonSerializable {
      String Filename = "/home/sivabala/IdeaProjects/newassignment/src/main/java/com/zeetaminds/io/person.txt";
     public  FileLogger logger = new FileLogger(Filename);
     // Generalized serialize method using OutputStream
-    public void serialize(Person person, OutputStream os) throws IOException {
+    public void serialize(Object obj, OutputStream os) throws IOException {
        ObjectOutputStream out = new ObjectOutputStream(os);
-            out.writeObject(person);
+            out.writeObject(obj);
             logger.log("serialized");
     }
 
     // Generalized deserialize method using InputStream
-    public Person deserialize(InputStream is) throws IOException, ClassNotFoundException {
-        Person person = null;
+    public Object deserialize(InputStream is) throws IOException, ClassNotFoundException {
+        Object obj = null;
         ObjectInputStream in = new ObjectInputStream(is);
-            person = (Person) in.readObject();
+            obj = in.readObject();
             logger.log("deserialized");
-        return person;
+        return obj;
     }
 
     public static void main(String[] args) throws IOException, ClassNotFoundException {
@@ -31,7 +31,7 @@ public class PersonSerializable {
         // Deserializing from a file
         Person deserializedPerson = null;
         FileInputStream fis = new FileInputStream("person.ser");
-            deserializedPerson = p.deserialize(fis);
+            deserializedPerson = (Person)p.deserialize(fis);
 
         p.logger.log(String.valueOf(deserializedPerson));
     }
