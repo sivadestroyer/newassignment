@@ -25,22 +25,31 @@ public class FtpClient {
             totalBytes+=read;
         }
         fos.flush();
-        fos.close();
     }catch(IOException e){
         logger.log(Level.SEVERE,"Error during file transfer",e);
         }
     }
-    void sendFiles(String fileName,Socket socket){
-        File file = new File(fileName);
-        try{
-            byte[] fileBytes = Files.readAllBytes(Paths.get(fileName));
-            OutputStream os = socket.getOutputStream();
-            os.write(fileBytes);
-            os.flush();
-        }catch(IOException e){
-            logger.log(Level.SEVERE,"Error during file transfer",e);
+    void sendFiles(String fileName, Socket socket) {
+        String filePath = "/home/sivabala/IdeaProjects/newassignment/src/main/java/com/zeetaminds/client/" + fileName;
+        File file = new File(filePath);
+
+        if (file.exists() && file.isFile()) {
+            try {
+                byte[] fileBytes = Files.readAllBytes(file.toPath()); // Use file.toPath()
+                OutputStream os = socket.getOutputStream();
+                DataOutputStream dos = new DataOutputStream(os);
+                dos.writeLong(fileBytes.length); // Send file size first
+                dos.write(fileBytes); // Send file data
+                dos.flush();
+                System.out.println("File sent successfully");
+            } catch (IOException e) {
+                logger.log(Level.SEVERE, "Error during file transfer", e);
+            }
+        } else {
+            System.out.println("File not found: " + filePath);
         }
     }
+
     public static void main(String[] a){
         try{
             FtpClient client = new FtpClient();
@@ -62,8 +71,7 @@ public class FtpClient {
                         break;
                     case "GET":
                         if(tokens.length > 1){
-                            Socket transferSocket = new Socket("localhost", 9806);
-                            client.receiveFiles(tokens[1],transferSocket);
+                            client.receiveFiles(tokens[1],socket);
                         }else{
                             logger.info("filename is missing");
                         }

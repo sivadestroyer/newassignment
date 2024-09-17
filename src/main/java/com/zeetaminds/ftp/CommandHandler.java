@@ -35,7 +35,7 @@ public class CommandHandler extends Thread {
                         break;
                     case "PUT":
                         if (tokens.length > 1) {
-                            recieveFiles(tokens[1], reader, socket);
+                            receiveFiles(tokens[1], socket);
                         } else {
                             logger.info("filename not given");
                         }
@@ -100,24 +100,28 @@ public class CommandHandler extends Thread {
         }
     }
 
-    public void recieveFiles(String fileName, BufferedReader reader, Socket socket) {
+    public void receiveFiles(String fileName, Socket socket) {
+
         File file = new File(fileName);
-        try {
-            int fileSize = 4096;
-            byte[] buffer = new byte[fileSize];
+
+        try (FileOutputStream fos = new FileOutputStream(file)) {
             InputStream is = socket.getInputStream();
-            try (FileOutputStream fos = new FileOutputStream(file)) {
-                int byteRead;
-                while ((byteRead = is.read(buffer)) > 0) {
-                    fos.write(buffer, 0, byteRead);
-                }
-                fos.flush();
-                System.out.println("file received successfully");
+            DataInputStream dis = new DataInputStream(is);
+            long fileSize = dis.readLong(); // Read the file size first
+
+            byte[] buffer = new byte[4096];
+            int totalBytesRead = 0;
+            int bytesRead;
+
+            while (totalBytesRead < fileSize && (bytesRead = dis.read(buffer)) != -1) {
+                fos.write(buffer, 0, bytesRead);
+                totalBytesRead += bytesRead;
             }
-
-
+            fos.flush();
+            System.out.println("File received successfully");
         } catch (IOException e) {
-            logger.log(Level.SEVERE, "error in file transfer", e);
+            logger.log(Level.SEVERE, "Error during file transfer", e);
         }
     }
+
 }
