@@ -25,7 +25,7 @@ public class EchoServer {
             while (running) {
                 Socket socket = ss.accept();
                 System.out.println("connection established");
-                ClientHandler clienthandler = new ClientHandler(socket, clientLimit);
+                Client1 clienthandler = new Client1(socket, clientLimit);
                 threadPool.submit(clienthandler);
             }
             threadPool.shutdown();
@@ -66,11 +66,11 @@ class ConsoleListener implements Runnable {
     }
 }
 
-class ClientHandler implements Runnable {
+class Client1 implements Runnable {
     private Socket socket;
     private Semaphore clientLimit;
 
-    public ClientHandler(Socket socket, Semaphore clientLimit) {
+    public Client1(Socket socket, Semaphore clientLimit) {
         this.socket = socket;
         this.clientLimit = clientLimit;
     }

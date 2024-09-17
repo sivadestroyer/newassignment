@@ -1,4 +1,4 @@
-package com.zeetaminds.io;
+package com.zeetaminds.serialize;
 
 import java.io.Serializable;
 

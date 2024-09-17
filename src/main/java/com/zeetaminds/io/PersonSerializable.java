@@ -1,8 +1,10 @@
 package com.zeetaminds.io;
 import java.io.*;
 import com.zeetaminds.io.Logger.*;
+import com.zeetaminds.serialize.Person;
+
 public class PersonSerializable {
-     String Filename = "/home/sivabala/IdeaProjects/newassignment/src/main/java/com/zeetaminds/io/person.txt";
+    String Filename = "/home/sivabala/IdeaProjects/newassignment/src/main/java/com/zeetaminds/io/person.txt";
     public  FileLogger logger = new FileLogger(Filename);
     // Generalized serialize method using OutputStream
     public void serialize(Object obj, OutputStream os) throws IOException {

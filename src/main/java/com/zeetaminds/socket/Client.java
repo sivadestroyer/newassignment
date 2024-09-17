@@ -31,7 +31,7 @@ public class Client {
         while (true) {
             try {
                 inputFromUser = br.readLine();
-                String[] b = inputFromUser.split(" ",2);
+                String[] b = inputFromUser.split(" ", 2);
                 switch (b[0]) {
                     case "put":
                         sendFile(b[1]);
@@ -77,7 +77,7 @@ public class Client {
 
     public void receiveFile(String filename) {
         try {
-             String filedata = "";
+            String filedata = "";
 
             dos.writeUTF("DOWNLOAD_FILE");
             dos.writeUTF(filename);
