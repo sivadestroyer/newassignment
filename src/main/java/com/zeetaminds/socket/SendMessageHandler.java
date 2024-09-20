@@ -15,7 +15,7 @@ public class SendMessageHandler implements Runnable{
             BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
             String line;
             while((line = in.readLine()) != null){
-                out.println("server:"+line);
+                out.println(line);
             }
 
         }catch (IOException e){

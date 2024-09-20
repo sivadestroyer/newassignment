@@ -7,8 +7,8 @@ import java.nio.file.Paths;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class CommandHandler extends Thread {
-    Logger logger = Logger.getLogger(CommandHandler.class.getName());
+public class CommandHandler implements Runnable {
+    Logger LOG = Logger.getLogger(CommandHandler.class.getName());
     Socket socket;
 
     public CommandHandler(Socket socket) {
@@ -30,27 +30,27 @@ public class CommandHandler extends Thread {
                         if (tokens.length > 1) {
                             sendFiles(tokens[1], writer, socket);
                         } else {
-                            logger.info("filename is missing");
+                            LOG.info("filename is missing");
                         }
                         break;
                     case "PUT":
                         if (tokens.length > 1) {
                             receiveFiles(tokens[1], socket);
                         } else {
-                            logger.info("filename not given");
+                           LOG.info("filename not given");
                         }
                         break;
                     default:
-                        logger.info("unknown command");
+                       LOG.info("unknown command");
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            LOG.log(Level.SEVERE,"error reading", e.getMessage());
         } finally {
             try {
                 socket.close();
             } catch (IOException e) {
-                logger.log(Level.SEVERE, "Error closing socket", e);
+                LOG.log(Level.SEVERE, "Error closing socket", e);
             }
         }
     }
@@ -64,11 +64,14 @@ public class CommandHandler extends Thread {
                     writer.println(file.getName());
                 }
             }
+
         } else {
             writer.println("no such file found");
 
         }
-        writer.println("END_OF_LIST");
+        System.out.println("list sent successfully");
+        writer.println("266");
+
     }
 
     public void sendFiles(String fileName, PrintWriter writer, Socket socket) {
@@ -92,7 +95,7 @@ public class CommandHandler extends Thread {
                 fis.close();
                 System.out.println("file sent successfully");
             } catch (IOException e) {
-                logger.log(Level.SEVERE, "error during io", e);
+                LOG.log(Level.SEVERE, "error during io", e);
             }
 
         } else {
@@ -120,7 +123,7 @@ public class CommandHandler extends Thread {
             fos.flush();
             System.out.println("File received successfully");
         } catch (IOException e) {
-            logger.log(Level.SEVERE, "Error during file transfer", e);
+            LOG.log(Level.SEVERE, "Error during file transfer", e);
         }
     }
 
