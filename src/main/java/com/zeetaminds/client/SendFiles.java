@@ -17,22 +17,25 @@ public class SendFiles {
     }
 
     public void sendFiles() {
-        File file = new File(fileName);
+        try {
+            OutputStream os = socket.getOutputStream();
+            DataOutputStream dos = new DataOutputStream(os);
+            File file = new File(fileName);
 
-        if (file.exists() && file.isFile()) {
-            try {
+            if (file.exists() && file.isFile()) {
                 byte[] fileBytes = Files.readAllBytes(file.toPath()); // Use file.toPath()
-                OutputStream os = socket.getOutputStream();
-                DataOutputStream dos = new DataOutputStream(os);
-                dos.writeLong(fileBytes.length); // Send file size first
+                dos.writeUTF("OK"); // Send a signal that the file exists
+                dos.writeLong(fileBytes.length); // Send file size
                 dos.write(fileBytes); // Send file data
                 dos.flush();
                 System.out.println("File sent successfully");
-            } catch (IOException e) {
-                logger.log(Level.SEVERE, "Error during file transfer", e);
+            } else {
+                // Send error message to the client if the file is not found
+                dos.writeUTF("ERROR: File not found");
+                System.out.println("File not found: " + fileName);
             }
-        } else {
-            System.out.println("File not found: " + fileName);
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "Error during file transfer", e);
         }
     }
 }

@@ -2,11 +2,11 @@ package com.zeetaminds.ftp;
 
 import java.net.*;
 import java.io.*;
-
+import java.util.logging.Logger;
 public class FtpServernew {
     ServerSocket ss;
     Socket soc;
-
+    Logger logger = Logger.getLogger(FtpServernew.class.getName());
     public void doConnections(int port) {
         try {
             ss = new ServerSocket(port);
@@ -17,7 +17,7 @@ public class FtpServernew {
                 thread.start();
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.info("error:" + e.getMessage());
         }
     }
 

@@ -18,18 +18,25 @@ public class ReceiveFiles {
         this.socket = socket;
     }
 
-    void receiveFiles() {
+    public void receiveFiles() {
         byte[] bytes = new byte[1024];
         try {
-            // Construct the file path using the current directory
-
             InputStream is = socket.getInputStream();
             DataInputStream dis = new DataInputStream(is);
+
+            // First, check for the status message from the server
+            String status = dis.readUTF(); // Read the server's response
+            if ("ERROR: File not found".equals(status)) {
+                System.out.println("Server error: " + status);
+                return; // Exit the method if the file was not found
+            }
+
+            // If the file exists, proceed with file reception
             FileOutputStream fos = new FileOutputStream(fileName);
             int read;
             int totalBytes = 0;
-            long filesize = dis.readLong(); // Receive file size
-            while (totalBytes < filesize && (read = dis.read(bytes)) > 0) {
+            long fileSize = dis.readLong(); // Receive file size
+            while (totalBytes < fileSize && (read = dis.read(bytes)) > 0) {
                 fos.write(bytes, 0, read);
                 totalBytes += read;
             }

@@ -1,4 +1,0 @@
-FileLogger: First log message
-FileLogger: Second log message
-FileLogger: First log message
-FileLogger: Second log message
