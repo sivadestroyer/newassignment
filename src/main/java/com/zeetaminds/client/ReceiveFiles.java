@@ -1,14 +1,14 @@
 package com.zeetaminds.client;
 
-import java.io.DataInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import com.zeetaminds.ftp.Command;
+
+import java.io.*;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class ReceiveFiles {
+public class ReceiveFiles implements Command {
     Logger logger = Logger.getLogger(ReceiveFiles.class.getName());
     private String fileName;
     private Socket socket;
@@ -17,33 +17,38 @@ public class ReceiveFiles {
         this.fileName = fileName;
         this.socket = socket;
     }
-
-    public void receiveFiles() {
-        byte[] bytes = new byte[1024];
+    public void handle() {
+        byte[] bytes = new byte[2]; // Increase buffer size for file transfer
         try {
             InputStream is = socket.getInputStream();
-            DataInputStream dis = new DataInputStream(is);
-
-            // First, check for the status message from the server
-            String status = dis.readUTF(); // Read the server's response
-            if ("ERROR: File not found".equals(status)) {
-                System.out.println("Server error: " + status);
-                return; // Exit the method if the file was not found
+            FileOutputStream fos = new FileOutputStream(fileName);
+            OutputStream out = socket.getOutputStream();
+            StringBuilder receivedString = new StringBuilder();
+            byte[] buffer = new byte[1024]; // Buffer to hold incoming bytes
+            int bytesRead;
+            while ((bytesRead = is.read(buffer)) != -1) {
+                String part = new String(buffer, 0, bytesRead, StandardCharsets.UTF_8);
+                receivedString.append(part); // Append to the StringBuilder
+                if (part.contains("\n")) {
+                    break; // Exit loop if we reach a newline or any end condition
+                }
             }
 
-            // If the file exists, proceed with file reception
-            FileOutputStream fos = new FileOutputStream(fileName);
-            int read;
+            long received = Long.parseLong(receivedString.toString().trim());
+            System.out.println(received);
             int totalBytes = 0;
-            long fileSize = dis.readLong(); // Receive file size
-            while (totalBytes < fileSize && (read = dis.read(bytes)) > 0) {
+            int read;
+            while (totalBytes < received && (read = is.read(bytes)) > 0) {
                 fos.write(bytes, 0, read);
                 totalBytes += read;
             }
+            out.write(("you are entering mort than"+received+"characters").getBytes());
             fos.flush();
             System.out.println("File received successfully");
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Error during file transfer", e);
         }
     }
+
+
 }

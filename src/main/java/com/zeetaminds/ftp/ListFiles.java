@@ -3,8 +3,14 @@ package com.zeetaminds.ftp;
 import java.io.File;
 import java.io.PrintWriter;
 
-public class ListFiles {
-    public void listFiles(PrintWriter writer) {
+public class ListFiles implements Command {
+    private PrintWriter writer;
+
+    public ListFiles(PrintWriter writer) {
+        this.writer = writer;
+    }
+
+    public void handle() {
         File dir = new File(".");
         File[] files = dir.listFiles();
 

@@ -6,7 +6,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class CommandHandlerProtocol implements Runnable {
-    Logger logger = Logger.getLogger(CommandHandler.class.getName());
+    Logger logger = Logger.getLogger(CommandHandlerProtocol.class.getName());
     Socket socket;
 
     public CommandHandlerProtocol(Socket socket) {

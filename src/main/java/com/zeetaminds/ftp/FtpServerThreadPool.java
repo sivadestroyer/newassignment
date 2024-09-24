@@ -16,7 +16,7 @@ public class FtpServerThreadPool {
 
             while (true) {
                 Socket socket = ss.accept();
-                executor.submit(new CommandHandler(socket));
+                executor.submit(new Parser(socket));
 
             }
         } catch (IOException e) {

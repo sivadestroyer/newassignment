@@ -2,6 +2,7 @@ package com.zeetaminds.ftp;
 
 import java.io.*;
 import java.net.*;
+import java.util.Objects;
 import java.util.logging.Logger;
 
 import com.zeetaminds.client.ReceiveFiles;
@@ -10,41 +11,30 @@ import com.zeetaminds.client.SendFiles;
 public class ProcessCommand {
     static final Logger LOG = Logger.getLogger(ProcessCommand.class.getName());
 
-    public void processCommand(String command, PrintWriter writer, Socket socket) {
+    public Command processCommand(String[] tokens, PrintWriter writer, Socket socket) {
 
-        if (command.isEmpty()) {
-            return;
-        }
-        String[] tokens = command.split(" ");
         String operation = tokens[0].toUpperCase();
 
-        switch (operation) {
-            case "LIST":
-                ListFiles add = new ListFiles();
-                add.listFiles(writer);
-                writer.flush();
-                break;
-            case "GET":
-                if (tokens.length > 1) {
-                    SendFiles obj = new SendFiles(tokens[1], socket);
-                    obj.sendFiles();
-                } else {
-                    LOG.info("filename is missing");
-                }
-                break;
-            case "PUT":
-                if (tokens.length > 1) {
-                    ReceiveFiles obj = new ReceiveFiles(tokens[1], socket);
-                    obj.receiveFiles();
-                } else {
-                    LOG.info("filename not given");
-                }
-                break;
-            default:
-                LOG.info("unknown command");
-                writer.println("ERROR: Unknown command");
-                writer.flush();
-                break;
+        if (Objects.equals(operation, "LIST")) {
+            return new ListFiles(writer);
+        } else if (Objects.equals(operation, "GET")) {
+            if (tokens.length > 1) {
+                return new SendFiles(tokens[1], socket);
+            } else {
+                writer.println("Syntax error in parameters or arguments.");
+            }
+
+        } else if (Objects.equals(operation, "PUT")) {
+            if (tokens.length > 1) {
+                System.out.println("entering put command");
+                return new ReceiveFiles(tokens[1], socket);
+
+            } else {
+                writer.println("Syntax error in parameters or arguments.");
+            }
+        } else {
+            LOG.info("unknown command"+operation);
         }
+        return null;
     }
 }

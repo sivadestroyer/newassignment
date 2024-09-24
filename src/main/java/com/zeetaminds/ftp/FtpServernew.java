@@ -12,7 +12,7 @@ public class FtpServernew {
             ss = new ServerSocket(port);
             while (true) {
                 soc = ss.accept();
-                CommandHandler commandhandler = new CommandHandler(soc);
+                Parser commandhandler = new Parser(soc);
                 Thread thread = new Thread(commandhandler);
                 thread.start();
             }
