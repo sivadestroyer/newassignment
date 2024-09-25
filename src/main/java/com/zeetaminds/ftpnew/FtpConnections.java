@@ -1,15 +1,13 @@
 package com.zeetaminds.ftpnew;
 
-import com.zeetaminds.ftp.FtpServernew;
-
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.logging.Logger;
 
-public class ftpconnections {
+public class FtpConnections {
     ServerSocket ss;
     Socket soc;
-    Logger logger = Logger.getLogger(ftpconnections.class.getName());
+    Logger logger = Logger.getLogger(FtpConnections.class.getName());
     public void doConnections(int port) {
         try {
             ss = new ServerSocket(port);
@@ -27,7 +25,7 @@ public class ftpconnections {
 
     public static void main(String[] args) throws Exception {
         int port = 9806;
-        ftpconnections s = new ftpconnections();
+        FtpConnections s = new FtpConnections();
         s.doConnections(port);
     }
 }
