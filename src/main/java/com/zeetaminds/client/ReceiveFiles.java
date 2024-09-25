@@ -1,9 +1,7 @@
 package com.zeetaminds.client;
 
 import com.zeetaminds.ftp.Command;
-
 import java.io.*;
-import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -11,22 +9,23 @@ import java.util.logging.Logger;
 public class ReceiveFiles implements Command {
     Logger logger = Logger.getLogger(ReceiveFiles.class.getName());
     private String fileName;
-    private Socket socket;
-
-    public ReceiveFiles(String fileName, Socket socket) {
+    private OutputStream out;
+    private InputStream in;
+    public ReceiveFiles(String fileName, InputStream in,OutputStream out) {
         this.fileName = fileName;
-        this.socket = socket;
+        this.in = in;
+        this.out = out;
     }
     public void handle() {
         byte[] bytes = new byte[2]; // Increase buffer size for file transfer
         try {
-            InputStream is = socket.getInputStream();
+
             FileOutputStream fos = new FileOutputStream(fileName);
-            OutputStream out = socket.getOutputStream();
+
             StringBuilder receivedString = new StringBuilder();
             byte[] buffer = new byte[1024]; // Buffer to hold incoming bytes
             int bytesRead;
-            while ((bytesRead = is.read(buffer)) != -1) {
+            while ((bytesRead = in.read(buffer)) != -1) {
                 String part = new String(buffer, 0, bytesRead, StandardCharsets.UTF_8);
                 receivedString.append(part); // Append to the StringBuilder
                 if (part.contains("\n")) {
@@ -38,13 +37,12 @@ public class ReceiveFiles implements Command {
             System.out.println(received);
             int totalBytes = 0;
             int read;
-            while (totalBytes < received && (read = is.read(bytes)) > 0) {
+            while (totalBytes < received && (read = in.read(bytes)) > 0) {
                 fos.write(bytes, 0, read);
                 totalBytes += read;
             }
-            out.write(("you are entering mort than"+received+"characters").getBytes());
+            out.write(("you are entering more than "+received+" characters").getBytes());
             fos.flush();
-            System.out.println("File received successfully");
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Error during file transfer", e);
         }

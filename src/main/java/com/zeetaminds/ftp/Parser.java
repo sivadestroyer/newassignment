@@ -18,26 +18,25 @@ public class Parser implements Runnable {
         this.socket = socket;
     }
 
-    public Command processCommand(String[] tokens, PrintWriter writer, Socket socket) {
+    public Command processCommand(String[] tokens, OutputStream out, InputStream in) throws IOException {
 
         String operation = tokens[0].toUpperCase();
 
         if (Objects.equals(operation, "LIST")) {
-            return new ListFiles(writer);
+            return new ListFiles(out);
         } else if (Objects.equals(operation, "GET")) {
             if (tokens.length > 1) {
-                return new SendFiles(tokens[1], socket);
+                return new SendFiles(tokens[1],out);
             } else {
-                writer.println("Syntax error in parameters or arguments.");
+                out.write(("Syntax error in parameters or arguments.\n").getBytes(StandardCharsets.UTF_8));
             }
 
         } else if (Objects.equals(operation, "PUT")) {
             if (tokens.length > 1) {
-                System.out.println("entering put command");
-                return new ReceiveFiles(tokens[1], socket);
+                return new ReceiveFiles(tokens[1], in,out);
 
             } else {
-                writer.println("Syntax error in parameters or arguments.");
+                out.write(("Syntax error in parameters or arguments.\n").getBytes(StandardCharsets.UTF_8));
             }
         } else {
             LOG.info("unknown command" + operation);
@@ -50,7 +49,7 @@ public class Parser implements Runnable {
         Parser process = new Parser(socket);
 
         try (InputStream reader = socket.getInputStream();
-             PrintWriter writer = new PrintWriter(socket.getOutputStream(), true)) {
+             OutputStream out = socket.getOutputStream()) {
 
             byte[] buffer = new byte[1024];
             ByteArrayOutputStream commandBuffer = new ByteArrayOutputStream();
@@ -62,17 +61,16 @@ public class Parser implements Runnable {
 
                 int newlineIndex;
                 while ((newlineIndex = indexOf(commandBuffer.toByteArray(), (byte) '\n')) >= 0) {
-                    // Extract the command up to the newline
-                    byte[] commandBytes = commandBuffer.toByteArray(); // Get the current bytes from commandBuffer
-                    byte[] commandToProcess = new byte[newlineIndex]; // Create a new byte array to hold the command
-                    System.arraycopy(commandBytes, 0, commandToProcess, 0, newlineIndex); // Copy valid bytes into commandToProcess
+                    byte[] commandBytes = commandBuffer.toByteArray();
+                    byte[] commandToProcess = new byte[newlineIndex];
+                    System.arraycopy(commandBytes, 0, commandToProcess, 0, newlineIndex);
 
                     // Convert commandToProcess to String and process the command
                     String command = new String(commandToProcess, StandardCharsets.UTF_8).trim();
                     String[] tokens = command.split(" ");
                     System.out.println("Received command: " + command);
 
-                    Command obj = process.processCommand(tokens, writer, socket);
+                    Command obj = process.processCommand(tokens, out, reader);
                     obj.handle();
                     // Remove the processed command from the buffer
                     byte[] remainingBytes = commandBuffer.toByteArray();
