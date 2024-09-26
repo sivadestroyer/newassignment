@@ -5,10 +5,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-
+import java.util.logging.Logger;
 public class ListFiles implements Command {
     private OutputStream outputStream;
-
+    Logger LOG  = Logger.getLogger(ListFiles.class.getName());
     public ListFiles(OutputStream outputStream) {
         this.outputStream = outputStream;
     }
@@ -44,10 +44,9 @@ public class ListFiles implements Command {
             }
 
             outputStream.flush(); // Ensure all data is written
-            System.out.println("List sent successfully");
 
         } catch (IOException e) {
-            System.err.println("Error writing file list to output stream: " + e.getMessage());
+            LOG.info("Error writing file list to output stream: " + e.getMessage());
         }
     }
 }

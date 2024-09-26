@@ -8,11 +8,13 @@ import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class newClientConnections implements Runnable {
-    private Socket socket;
-    private static Logger LOG = Logger.getLogger(newClientConnections.class.getName());
+public class NewClientConnection implements Runnable {
 
-    public newClientConnections(Socket socket) {
+    private static final Logger LOG = Logger.getLogger(NewClientConnection.class.getName());
+
+    private final Socket socket;
+
+    public NewClientConnection(Socket socket) {
         this.socket = socket;
     }
 
@@ -21,14 +23,16 @@ public class newClientConnections implements Runnable {
         try (BufferedInputStream in = new BufferedInputStream(socket.getInputStream());
              OutputStream out = socket.getOutputStream()) {
 
-            boolean connectionActive = true;
-
-            while (connectionActive) {
+            while (!socket.isClosed()) {
                 // Parsing and obtaining the command object
-                Command cmd = parser.ParsingMethod(in, out);
+                Command cmd = parser.parsingMethod(in, out);
                 // Handling the command and writing the response back to the client
+                if(cmd==null) {
+                    LOG.info("null exception");
+                    break;  // Close the connection when the client sends a "bye" command
+                }
                 cmd.handle();
-                out.flush();
+
             }
 
         } catch (IOException e) {

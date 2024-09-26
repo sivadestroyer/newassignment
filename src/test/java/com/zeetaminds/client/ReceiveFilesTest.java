@@ -21,7 +21,7 @@ class ReceiveFilesTest {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
         // Create an instance of ReceiveFiles with the mock input and output streams
-        ReceiveFiles receiveFiles = new ReceiveFiles("testfile.txt", inputStream, outputStream);
+        ReceiveFiles receiveFiles = new ReceiveFiles("testfile.txt", inputStream, outputStream,"25");
 
         // Call the handle method to simulate file receiving
         receiveFiles.handle();

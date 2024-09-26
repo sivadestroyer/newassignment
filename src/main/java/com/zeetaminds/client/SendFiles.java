@@ -20,7 +20,7 @@ public class SendFiles implements Command {
 
     public void handle() {
         try {
-
+            System.out.println("inside sendfiles");
             File file = new File(fileName);
 
             if (file.exists() && file.isFile()) {

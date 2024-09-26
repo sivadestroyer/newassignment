@@ -37,7 +37,7 @@ public class ParsingNIO {
         } else {
             LOG.info("Unknown command: " + operation);
         }
-        return new HandleError(); // Default error handler
+        return null; // Default error handler
     }
 
     public Command ParsingMethod(ByteBuffer buffer, SocketChannel socketChannel) throws IOException {

@@ -22,27 +22,31 @@ public class Parser implements Runnable {
 
         String operation = tokens[0].toUpperCase();
 
-        if (Objects.equals(operation, "LIST")) {
-            return new ListFiles(out);
-        } else if (Objects.equals(operation, "GET")) {
-            if (tokens.length > 1) {
-                return new SendFiles(tokens[1],out);
-            } else {
-                out.write(("Syntax error in parameters or arguments.\n").getBytes(StandardCharsets.UTF_8));
-            }
+        switch (operation) {
+            case "LIST":
+                return new ListFiles(out);
+            case "GET":
+                if (tokens.length > 1) {
+                    return new SendFiles(tokens[1], out);
+                } else {
+                    out.write(("Syntax error in parameters or arguments.\n").getBytes(StandardCharsets.UTF_8));
+                }
 
-        } else if (Objects.equals(operation, "PUT")) {
-            if (tokens.length > 1) {
-                return new ReceiveFiles(tokens[1], in,out);
+                break;
+            case "PUT":
+                if (tokens.length > 2) {
+                    return new ReceiveFiles(tokens[1], in, out,tokens[2]);
 
-            } else {
-                out.write(("Syntax error in parameters or arguments.\n").getBytes(StandardCharsets.UTF_8));
-            }
-        } else {
-            LOG.info("unknown command" + operation);
+                } else {
+                    out.write(("Syntax error in parameters or arguments.\n").getBytes(StandardCharsets.UTF_8));
+                }
+                break;
+            default:
+                LOG.info("unknown command" + operation);
 
+                break;
         }
-        return new HandleError();
+        return null;
     }
 
     public void run() {

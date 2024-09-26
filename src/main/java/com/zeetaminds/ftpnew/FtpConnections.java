@@ -5,16 +5,16 @@ import java.net.Socket;
 import java.util.logging.Logger;
 
 public class FtpConnections {
-    ServerSocket ss;
-    Socket soc;
-    Logger logger = Logger.getLogger(FtpConnections.class.getName());
-    public void doConnections(int port) {
+
+    private static final Logger logger = Logger.getLogger(FtpConnections.class.getName());
+
+    public void doConnections(int port)  {
         try {
-            ss = new ServerSocket(port);
+            ServerSocket ss = new ServerSocket(port);
             while (true) {
-                soc = ss.accept();
+                Socket soc = ss.accept();
 //                Parser parser = new Parser(soc);
-                newClientConnections client = new newClientConnections(soc);
+                NewClientConnection client = new NewClientConnection(soc);
                 Thread thread = new Thread(client);
                 thread.start();
             }
