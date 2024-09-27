@@ -119,8 +119,65 @@ class ParsingTest {
         OutputStream out = new ByteArrayOutputStream();
         Command command= parsing.parsingMethod(in,out);
         command.handle();
-        File fileToCheck = new File("kumar.txt");
 
+
+        // Check that the content matches what was supposed to be written
+        String expectedContent = "haii\n"; // Make sure this matches what you expect
+        assertEquals(expectedContent, fileContent("kumar.txt"));
+
+        // Clean up: delete the test file if needed
+
+    }
+    @Test
+    public void testPipedCommands() throws IOException {
+        // Simulating piped commands
+        String inputCommand = "LIST\nLIST\nPUT sivatest.txt 2\nhalist\n";
+
+        // Set up input and output streams
+        InputStream in = new ByteArrayInputStream(inputCommand.getBytes(StandardCharsets.UTF_8));
+        ByteArrayOutputStream out = new ByteArrayOutputStream(); // to capture command output
+
+        // Loop to simulate continuous parsing of multiple commands in a stream
+        while (in.available() > 0) {
+            // Execute parsing for each command
+            Command command = parsing.parsingMethod(in, out);
+
+            // Ensure that command is not null
+            assertNotNull(command, "Command parsing returned null");
+
+            // Handle the parsed command
+            command.handle();
+
+            // Get the output after handling each command
+            String actualOutput = out.toString(StandardCharsets.UTF_8);
+
+            // Assert the expected output and command type for each command
+            if (command instanceof ListFiles) {
+                // Example expected output for LIST command
+                assertTrue(actualOutput.contains("testfile.txt"), "Expected 'testfile.txt' not found in output.");
+                assertTrue(actualOutput.contains("sivatest.txt"), "Expected 'sivatest.txt' not found in output.");
+            } else if (command instanceof ReceiveFiles) {
+                // Check if the command is an instance of ReceiveFiles (for PUT command)
+                assertTrue(true, "Expected ReceiveFiles command");
+
+                // Example expected output for PUT command
+                String expectedPutOutput = "ha\n";
+                assertEquals(expectedPutOutput, fileContent("sivatest.txt"));
+            } else if (command instanceof HandleError) {
+                // Example expected output for invalid commands
+                String expectedErrorOutput = "Syntax error in parameters or arguments.\n";
+                assertEquals(expectedErrorOutput, actualOutput, "Invalid command handling output mismatch");
+            }
+
+            // Reset the output stream for the next command
+            out.reset();
+        }
+
+        // Final assertions or validation if needed
+    }
+
+    private String fileContent(String fileName) throws FileNotFoundException {
+        File fileToCheck = new File(fileName);
         // Read the content of the file
         StringBuilder fileContent = new StringBuilder();
         try (Scanner scanner = new Scanner(fileToCheck)) {
@@ -128,37 +185,7 @@ class ParsingTest {
                 fileContent.append(scanner.nextLine()).append("\n"); // Append each line
             }
         }
-
-        // Check that the content matches what was supposed to be written
-        String expectedContent = "haii\n"; // Make sure this matches what you expect
-        assertEquals(expectedContent, fileContent.toString());
-
-        // Clean up: delete the test file if needed
-
-    }
-    @Test
-    public void testPipedCommands() throws IOException {
-        String inputCommand = "LIST\nLIST\nput sivatest.txt 2\nhalist\n"; // Simulating piped commands
-        InputStream in = new ByteArrayInputStream(inputCommand.getBytes(StandardCharsets.UTF_8));
-        OutputStream out = new ByteArrayOutputStream();
-
-        // Loop to simulate continuous parsing of multiple commands in a stream
-        while (in.available() > 0) {
-            // Execute parsing for each command
-            Command command = parsing.parsingMethod(in, out);
-            command.handle(); // Handle the parsed command
-
-            // Check the output for each command (you can adapt this to your expected output)
-            String commandOutput = out.toString();
-            System.out.println("Command Output: " + commandOutput);
-
-            // Reset the output stream for the next command
-            ((ByteArrayOutputStream) out).reset();
-        }
-
-        // Final assertions or validation if needed
-        // For example, if you expect each LIST command to produce specific output
-        // assertEquals("Expected output for LIST", actualOutput);
+        return fileContent.toString();
     }
 
 }

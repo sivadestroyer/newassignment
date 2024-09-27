@@ -35,7 +35,7 @@ public class Parser implements Runnable {
                 break;
             case "PUT":
                 if (tokens.length > 2) {
-                    return new ReceiveFiles(tokens[1], in, out,tokens[2]);
+                    return new ReceiveFiles(tokens[1], in, out,Long.parseLong(tokens[2]));
 
                 } else {
                     out.write(("Syntax error in parameters or arguments.\n").getBytes(StandardCharsets.UTF_8));

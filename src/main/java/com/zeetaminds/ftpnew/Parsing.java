@@ -19,15 +19,21 @@ public class Parsing {
 
     private static final int BUFFER_SIZE = 1024;
     private static final int MARK_LIMIT = 1024;
-    String message="Syntax error in parameters or arguments.\n";
+    String message = "Syntax error in parameters or arguments.\n";
+
     private Command processCommand(String[] tokens, InputStream in, OutputStream out) throws IOException {
         String operation = tokens[0].toUpperCase();
 
         switch (operation) {
-            case "LIST":return new ListFiles(out);
-            case "GET": return tokens.length>1 ? new SendFiles(tokens[1], out): new HandleError(out,message);
-            case "PUT": return tokens.length>2 ? new ReceiveFiles(tokens[1],in,out,tokens[2]):new HandleError(out,message);
-            default: return new HandleError(out,"unknown command");
+            case "LIST":
+                return new ListFiles(out);
+            case "GET":
+                return tokens.length > 1 ? new SendFiles(tokens[1], out) : new HandleError(out, message);
+            case "PUT":
+                return tokens.length > 2 ? new ReceiveFiles(tokens[1], in, out, Long.parseLong(tokens[2]))
+                        : new HandleError(out, message);
+            default:
+                return new HandleError(out, "unknown command");
         }
         // Default error handler
     }
@@ -61,6 +67,7 @@ public class Parsing {
 
                 // Reset input stream to handle remaining bytes after newline
                 in.reset();
+                //noinspection ResultOfMethodCallIgnored
                 in.skip(newlineIndex + 1);  // Skip the newline character
 
                 return processCommand(tokens, in, out);

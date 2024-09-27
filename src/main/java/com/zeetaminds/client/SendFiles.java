@@ -2,39 +2,48 @@ package com.zeetaminds.client;
 
 import com.zeetaminds.ftp.Command;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 
 public class SendFiles implements Command {
-    Logger logger = Logger.getLogger(SendFiles.class.getName());
-    private String fileName;
 
-    private OutputStream out;
+    private static final Logger LOG = Logger.getLogger(SendFiles.class.getName());
+
+    private final String fileName;
+    private final OutputStream out;
+
     public SendFiles(String fileName,OutputStream out) {
-
         this.fileName = fileName;
-
         this.out = out;
     }
 
-    public void handle() {
-        try {
-            System.out.println("inside sendfiles");
+    public void handle() throws IOException{
             File file = new File(fileName);
 
             if (file.exists() && file.isFile()) {
-                byte[] fileBytes = Files.readAllBytes(file.toPath()); // Use file.toPath()
-                out.write(fileBytes); // Send file data
+                // Write the file size to the output stream first
+                long fileSize = file.length();
+                out.write((Long.toString(fileSize)+"\n").getBytes(StandardCharsets.UTF_8));
                 out.flush();
-            } else {
-                // Send error message to the client if the file is not found
-                logger.log(Level.SEVERE, "File doesnot exist: " + fileName);
 
+                // Open a FileInputStream to read the file in chunks
+                try (FileInputStream fis = new FileInputStream(file)) {
+                    byte[] buffer = new byte[4096]; // 4 KB buffer
+                    int bytesRead;
+                    while ((bytesRead = fis.read(buffer)) != -1) {
+                        out.write(buffer, 0, bytesRead); // Send file data
+                    }
+                    flusing(out); // Ensure all data is flushed out
+                }
+            } else {
+
+                // Optionally, send an error response to the client
+                out.write("ERROR: File not found\n".getBytes(StandardCharsets.UTF_8));
+                flusing(out);
             }
-        } catch (IOException e) {
-            logger.log(Level.SEVERE, "Error during file transfer", e);
-        }
+
     }
 
 }
