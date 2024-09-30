@@ -5,7 +5,4 @@ import java.io.OutputStream;
 
 public interface Command {
     void handle() throws IOException;
-    default void flusing(OutputStream out) throws IOException{
-        out.flush();
-    }
 }

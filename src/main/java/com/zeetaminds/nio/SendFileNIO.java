@@ -3,54 +3,41 @@ package com.zeetaminds.nio;
 import com.zeetaminds.ftp.Command;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
-import java.nio.channels.SocketChannel;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class SendFileNIO implements Command {
-    private static final Logger logger = Logger.getLogger(SendFileNIO.class.getName());
-    private String fileName;
-    private SocketChannel socketChannel;
 
-    public SendFileNIO(String fileName, SocketChannel socketChannel) {
+    private static final Logger LOG = Logger.getLogger(SendFileNIO.class.getName());
+
+    private final String fileName;
+    private final DataHandler dataHandler;
+
+    public SendFileNIO(String fileName, DataHandler dataHandler) {
         this.fileName = fileName;
-        this.socketChannel = socketChannel;
+        this.dataHandler = dataHandler;
     }
 
-    @Override
-    public void handle() {
+    public void handle() throws IOException {
         File file = new File(fileName);
 
         if (file.exists() && file.isFile()) {
-            try (FileChannel fileChannel = FileChannel.open(Path.of(fileName), StandardOpenOption.READ)) {
-                // Allocate buffer for reading file
-                ByteBuffer buffer = ByteBuffer.allocateDirect(1024);
+            long fileSize = file.length();
+            dataHandler.write(Long.toString(fileSize) + "\n");
+            dataHandler.flush();
 
-                // Send file size first (could be useful for client to prepare for reception)
-                long fileSize = file.length();
-                socketChannel.write(ByteBuffer.wrap((fileSize + "\n").getBytes()));
-
+            try (FileInputStream fis = new FileInputStream(file)) {
+                byte[] buffer = new byte[4096];
                 int bytesRead;
-                while ((bytesRead = fileChannel.read(buffer)) > 0) {
-                    buffer.flip();  // Switch buffer to read mode
-                    socketChannel.write(buffer);  // Write file content to SocketChannel
-                    buffer.clear();  // Clear the buffer for next read
+                while ((bytesRead = fis.read(buffer)) != -1) {
+                    dataHandler.write(buffer, 0, bytesRead);
                 }
-            } catch (IOException e) {
-                logger.log(Level.SEVERE, "Error during file transfer", e);
+                dataHandler.flush();
             }
         } else {
-            try {
-                logger.log(Level.SEVERE, "File does not exist: " + fileName);
-                socketChannel.write(ByteBuffer.wrap("File not found.\n".getBytes()));
-            } catch (IOException e) {
-                logger.log(Level.SEVERE, "Error sending file not found message", e);
-            }
+            dataHandler.write("ERROR: File not found\n");
+            dataHandler.flush();
         }
     }
 }

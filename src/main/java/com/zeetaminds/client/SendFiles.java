@@ -25,9 +25,7 @@ public class SendFiles implements Command {
             if (file.exists() && file.isFile()) {
                 // Write the file size to the output stream first
                 long fileSize = file.length();
-                out.write((Long.toString(fileSize)+"\n").getBytes(StandardCharsets.UTF_8));
-                out.flush();
-
+                out.write((fileSize +"\n").getBytes(StandardCharsets.UTF_8));
                 // Open a FileInputStream to read the file in chunks
                 try (FileInputStream fis = new FileInputStream(file)) {
                     byte[] buffer = new byte[4096]; // 4 KB buffer
@@ -35,13 +33,11 @@ public class SendFiles implements Command {
                     while ((bytesRead = fis.read(buffer)) != -1) {
                         out.write(buffer, 0, bytesRead); // Send file data
                     }
-                    flusing(out); // Ensure all data is flushed out
                 }
             } else {
 
                 // Optionally, send an error response to the client
                 out.write("ERROR: File not found\n".getBytes(StandardCharsets.UTF_8));
-                flusing(out);
             }
 
     }

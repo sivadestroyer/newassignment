@@ -13,7 +13,6 @@ public class HandleError implements Command {
 
     public void handle() throws IOException {
         out.write(message.getBytes());
-        out.flush();
     }
 
 

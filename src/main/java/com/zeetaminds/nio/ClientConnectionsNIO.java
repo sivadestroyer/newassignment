@@ -11,8 +11,11 @@ import java.nio.channels.SocketChannel;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+
+
 public class ClientConnectionsNIO {
     private static final Logger LOG = Logger.getLogger(ClientConnectionsNIO.class.getName());
+    private static final int BUFFER_SIZE = 1024;
     private final SocketChannel socketChannel;
     private final ByteBuffer buffer = ByteBuffer.allocate(1024); // Buffer to store data
 
@@ -21,7 +24,7 @@ public class ClientConnectionsNIO {
     }
 
     public void run(SelectionKey key) {
-        ParsingNIO parser = new ParsingNIO();
+        ParsingNIO parsing = new ParsingNIO();
         try {
             if (socketChannel.read(buffer) == -1) {
                 socketChannel.close(); // Close the connection if the channel is closed
@@ -31,13 +34,10 @@ public class ClientConnectionsNIO {
 
             // Switch buffer to read mode
             buffer.flip();
-
-            // Parse commands and handle the result
-            Command cmd = parser.ParsingMethod(buffer, socketChannel);
-            if (cmd != null) {
-                cmd.handle();
-            }
-
+            ByteBuffer buffer = ByteBuffer.allocate(BUFFER_SIZE);
+            DataHandler nioHandler = new NIODataHandler(socketChannel, buffer);
+            Command cmd = parsing.parsingMethod(nioHandler);
+            cmd.handle();
             buffer.clear(); // Clear the buffer for the next read
 
         } catch (IOException e) {

@@ -6,6 +6,7 @@ import com.zeetaminds.ftp.Command;
 import com.zeetaminds.ftp.HandleError;
 import com.zeetaminds.ftp.ListFiles;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -38,7 +39,7 @@ public class Parsing {
         // Default error handler
     }
 
-    public Command parsingMethod(InputStream in, OutputStream out) throws IOException {
+    public Command parse(InputStream in, OutputStream out) throws IOException {
         byte[] buffer = new byte[BUFFER_SIZE];
         StringBuilder commandLine = new StringBuilder();
 

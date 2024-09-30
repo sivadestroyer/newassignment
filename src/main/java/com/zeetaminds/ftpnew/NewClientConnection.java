@@ -25,7 +25,7 @@ public class NewClientConnection implements Runnable {
 
             while (!socket.isClosed()) {
                 // Parsing and obtaining the command object
-                Command cmd = parser.parsingMethod(in, out);
+                Command cmd = parser.parse(in, out);
                 // Handling the command and writing the response back to the client
                 if(cmd==null) {
                     LOG.info("null exception");

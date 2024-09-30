@@ -33,9 +33,6 @@ public class ReceiveFiles implements Command {
             fos.write(bytes, 0, read);
             totalBytes += read;
         }
-
-       flusing(fos);
-        flusing(out);
     }
 
 

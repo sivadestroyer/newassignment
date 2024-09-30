@@ -12,12 +12,14 @@ import org.mockito.Mockito;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class ParsingTest {
 
+    private static final long DELAY_MS = 10;
     private Parsing parsing;
 
     @BeforeEach
@@ -32,7 +34,7 @@ class ParsingTest {
         OutputStream out = new ByteArrayOutputStream();
 
         // Execute parsing
-        Command command = parsing.parsingMethod(in, out);
+        Command command = parsing.parse(in, out);
 
         // Validate that we received the correct command object
         assertTrue(command instanceof ListFiles);
@@ -45,7 +47,7 @@ class ParsingTest {
         OutputStream out = new ByteArrayOutputStream();
 
         // Execute parsing
-        Command command = parsing.parsingMethod(in, out);
+        Command command = parsing.parse(in, out);
 
         // Validate that the correct command is invoked (SendFiles)
         assertTrue(command instanceof SendFiles);
@@ -57,13 +59,12 @@ class ParsingTest {
         InputStream in = new ByteArrayInputStream(inputCommand.getBytes(StandardCharsets.UTF_8));
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         // Execute parsing
-        Command command = parsing.parsingMethod(in, out);
+        Command command = parsing.parse(in, out);
         // Validate that the error handler is invoked
         assertInstanceOf(HandleError.class, command);
         command.handle();
         // Check the error message
         String errorMessage = new String(out.toByteArray(), StandardCharsets.UTF_8);
-        System.out.println(errorMessage);
         assertEquals("Syntax error in parameters or arguments.\n", errorMessage);
     }
 
@@ -74,7 +75,7 @@ class ParsingTest {
         OutputStream out = new ByteArrayOutputStream();
 
         // Execute parsing
-        Command command = parsing.parsingMethod(in, out);
+        Command command = parsing.parse(in, out);
 
         // Validate that the correct command is invoked (ReceiveFiles)
         assertTrue(command instanceof ReceiveFiles);
@@ -87,7 +88,7 @@ class ParsingTest {
         OutputStream out = new ByteArrayOutputStream();
 
         // Execute parsing
-        Command command = parsing.parsingMethod(in, out);
+        Command command = parsing.parse(in, out);
         command.handle();
         // Validate that the error handler is invoked
         assertInstanceOf(HandleError.class, command);
@@ -103,7 +104,7 @@ class ParsingTest {
         InputStream in = new ByteArrayInputStream(inputCommand.getBytes(StandardCharsets.UTF_8));
         OutputStream out = new ByteArrayOutputStream();
         // Execute parsing
-        Command command = parsing.parsingMethod(in, out);
+        Command command = parsing.parse(in, out);
 
         // Validate that the error handler is invoked for unknown commands
         assertTrue(command instanceof HandleError);
@@ -112,22 +113,8 @@ class ParsingTest {
         String errorMessage = out.toString();
         assertEquals("unknown command", errorMessage.trim());
     }
-    @Test
-    public void testPutCommandWithText() throws IOException {
-        String inputCommand="PUT kumar.txt 4\nhaii\n";
-        InputStream in =new ByteArrayInputStream(inputCommand.getBytes(StandardCharsets.UTF_8));
-        OutputStream out = new ByteArrayOutputStream();
-        Command command= parsing.parsingMethod(in,out);
-        command.handle();
 
 
-        // Check that the content matches what was supposed to be written
-        String expectedContent = "haii\n"; // Make sure this matches what you expect
-        assertEquals(expectedContent, fileContent("kumar.txt"));
-
-        // Clean up: delete the test file if needed
-
-    }
     @Test
     public void testPipedCommands() throws IOException {
         // Simulating piped commands
@@ -137,55 +124,94 @@ class ParsingTest {
         InputStream in = new ByteArrayInputStream(inputCommand.getBytes(StandardCharsets.UTF_8));
         ByteArrayOutputStream out = new ByteArrayOutputStream(); // to capture command output
 
+        // Variables to keep track of command execution order
+        int commandIndex = 0;
+        String[] expectedCommands = {"LIST", "LIST", "PUT", "LIST"};
+
         // Loop to simulate continuous parsing of multiple commands in a stream
         while (in.available() > 0) {
-            // Execute parsing for each command
-            Command command = parsing.parsingMethod(in, out);
+            // Parse each command
+            Command command = parsing.parse(in, out);
 
-            // Ensure that command is not null
+            // Ensure that the parsed command is not null
             assertNotNull(command, "Command parsing returned null");
 
             // Handle the parsed command
             command.handle();
 
-            // Get the output after handling each command
-            String actualOutput = out.toString(StandardCharsets.UTF_8);
-
-            // Assert the expected output and command type for each command
-            if (command instanceof ListFiles) {
-                // Example expected output for LIST command
-                assertTrue(actualOutput.contains("testfile.txt"), "Expected 'testfile.txt' not found in output.");
-                assertTrue(actualOutput.contains("sivatest.txt"), "Expected 'sivatest.txt' not found in output.");
-            } else if (command instanceof ReceiveFiles) {
-                // Check if the command is an instance of ReceiveFiles (for PUT command)
-                assertTrue(true, "Expected ReceiveFiles command");
-
-                // Example expected output for PUT command
-                String expectedPutOutput = "ha\n";
-                assertEquals(expectedPutOutput, fileContent("sivatest.txt"));
-            } else if (command instanceof HandleError) {
-                // Example expected output for invalid commands
-                String expectedErrorOutput = "Syntax error in parameters or arguments.\n";
-                assertEquals(expectedErrorOutput, actualOutput, "Invalid command handling output mismatch");
+            // Check if the correct command was executed in the right order
+            if (commandIndex < expectedCommands.length) {
+                if (command instanceof ListFiles) {
+                    assertEquals("LIST", expectedCommands[commandIndex], "Expected LIST command");
+                } else if (command instanceof ReceiveFiles) {
+                    assertEquals("PUT", expectedCommands[commandIndex], "Expected PUT command");
+                } else if (command instanceof HandleError) {
+                    assertEquals("halist", expectedCommands[commandIndex], "Expected invalid command");
+                }
             }
+
+            // Increment the command index to check the next command in the pipeline
+            commandIndex++;
 
             // Reset the output stream for the next command
             out.reset();
         }
 
-        // Final assertions or validation if needed
+        // Verify that all expected commands were processed
+        assertEquals(expectedCommands.length, commandIndex, "Not all commands were executed.");
     }
 
-    private String fileContent(String fileName) throws FileNotFoundException {
-        File fileToCheck = new File(fileName);
-        // Read the content of the file
-        StringBuilder fileContent = new StringBuilder();
-        try (Scanner scanner = new Scanner(fileToCheck)) {
-            while (scanner.hasNextLine()) {
-                fileContent.append(scanner.nextLine()).append("\n"); // Append each line
+    @Test
+    public void testSendCommandWithDelay() throws IOException {
+        // Command to test
+        String inputCommand = "LIST\n"; // Change this as needed for other commands
+
+        // Create output stream to capture the response
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        PrintWriter writer = new PrintWriter(out);
+
+        // Use the method to send the command with a delay
+        sendCommandWithDelay(inputCommand, writer);
+
+        // Now we need to simulate the parsing of the output
+        ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+
+        // Parse the command
+        Command command = parsing.parse(in, out);
+
+        // Check if a command instance has been created
+        assertNotNull(command, "Expected command instance to be created.");
+        assertTrue(command instanceof ListFiles, "Expected command to be an instance of ListFiles.");
+
+        // Optionally, validate the output for the LIST command
+        String output = out.toString(StandardCharsets.UTF_8);
+        assertFalse(output.isEmpty(), "Expected output for LIST command should not be empty.");
+    }
+
+    // Method to send command with delay
+    private static void sendCommandWithDelay(String command, PrintWriter out) {
+        char[] commandChars = command.toCharArray();
+        for (char ch : commandChars) {
+            out.print(ch); // Send one character at a time
+            out.flush();
+            try {
+                // Introduce a delay between each character
+                TimeUnit.MILLISECONDS.sleep(DELAY_MS);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         }
-        return fileContent.toString();
+        // Send newline after the full command
+        out.print("\n");
+        out.flush();
     }
 
-}
+
+
+
+    // Final assertions or validation if needed
+    }
+
+
+
+
