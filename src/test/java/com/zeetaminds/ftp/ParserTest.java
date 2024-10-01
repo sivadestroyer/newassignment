@@ -5,11 +5,8 @@ import com.zeetaminds.client.SendFiles;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.List;
 import java.io.*;
 import java.net.*;
-import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
@@ -25,7 +22,7 @@ class ParserTest {
     void processCommand() throws IOException {
         Socket mockSocket = mock(Socket.class);
         OutputStream mockOutputStream = new ByteArrayOutputStream();
-        Parser parser = new Parser(mockSocket);
+        Parsing parser = new Parsing(mockSocket);
         InputStream mockInputStream = new ByteArrayInputStream("LIST\n".getBytes(StandardCharsets.UTF_8));
         // Test LIST command
         Command listCommand = parser.processCommand(new String[]{"LIST"}, mockOutputStream, mockInputStream);
@@ -54,7 +51,7 @@ class ParserTest {
         when(mockSocket.getInputStream()).thenReturn(mockInputStream);
         when(mockSocket.getOutputStream()).thenReturn(mockOutputStream);
 
-        Parser parser = new Parser(mockSocket);
+        Parsing parser = new Parsing(mockSocket);
         parser.run();
         String output = mockOutputStream.toString();
         assertNotNull(output); // Verify some output was generated

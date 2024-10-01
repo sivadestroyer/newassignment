@@ -32,7 +32,6 @@ class SendFilesTest {
         sendFiles.handle();
 
         // Verify the output
-        String expectedOutput = tempFile.length() + "\n" + fileContent;
         String actualOutput = mockOutputStream.toString();
 
         // Check that the output contains the file size and the content

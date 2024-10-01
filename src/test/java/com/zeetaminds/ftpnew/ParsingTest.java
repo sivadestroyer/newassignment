@@ -7,24 +7,21 @@ import com.zeetaminds.ftp.HandleError;
 import com.zeetaminds.ftp.ListFiles;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 class ParsingTest {
 
     private static final long DELAY_MS = 10;
-    private Parsing parsing;
+    private Parser parsing;
 
     @BeforeEach
     public void setUp() {
-        parsing = new Parsing();
+        parsing = new Parser();
     }
 
     @Test
@@ -205,10 +202,6 @@ class ParsingTest {
         out.print("\n");
         out.flush();
     }
-
-
-
-
     // Final assertions or validation if needed
     }
 

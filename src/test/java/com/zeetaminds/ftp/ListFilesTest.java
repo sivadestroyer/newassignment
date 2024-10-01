@@ -35,7 +35,6 @@ class ListFilesTest {
         mockFiles[2] = mock(File.class);
         when(mockFiles[2].getName()).thenReturn("file3.txt");
         when(mockFiles[2].isFile()).thenReturn(true);
-
         // Mock the directory object to return the mock files
         File mockDirectory = mock(File.class);
         when(mockDirectory.listFiles()).thenReturn(mockFiles);

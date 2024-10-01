@@ -12,14 +12,16 @@ import java.util.stream.Collectors;
 
 public class ListFiles implements Command {
 
-    private static final Logger LOG  = Logger.getLogger(ListFiles.class.getName());
+    private static final Logger LOG = Logger.getLogger(ListFiles.class.getName());
 
     private final OutputStream outputStream;
-    private File directory=new File(".");
+    private File directory = new File(".");
+
     public ListFiles(OutputStream outputStream) {
         this.outputStream = outputStream;
     }
-    public void setDirectory(File directory) {
+
+    void setDirectory(File directory) {
         this.directory = directory;
     }
 
@@ -32,12 +34,12 @@ public class ListFiles implements Command {
                 .collect(Collectors.toList());
 
 
-            // Write the number of files to the output stream
-            outputStream.write((fileList.size() + "\n").getBytes(StandardCharsets.UTF_8));
+        // Write the number of files to the output stream
+        outputStream.write((fileList.size() + "\n").getBytes(StandardCharsets.UTF_8));
 
-            // Then write the file names to the output stream
-            for (File file : fileList) {
-                outputStream.write((file.getName() + "\n").getBytes(StandardCharsets.UTF_8));
-            }
+        // Then write the file names to the output stream
+        for (File file : fileList) {
+            outputStream.write((file.getName() + "\n").getBytes(StandardCharsets.UTF_8));
+        }
     }
 }

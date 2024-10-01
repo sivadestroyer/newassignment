@@ -1,7 +1,6 @@
 package com.zeetaminds.ftp;
 
 import java.net.*;
-import java.io.*;
 import java.util.logging.Logger;
 public class FtpServernew {
     ServerSocket ss;
@@ -12,7 +11,7 @@ public class FtpServernew {
             ss = new ServerSocket(port);
             while (true) {
                 soc = ss.accept();
-                Parser parser = new Parser(soc);
+                Parsing parser = new Parsing(soc);
                 Thread thread = new Thread(parser);
                 thread.start();
             }

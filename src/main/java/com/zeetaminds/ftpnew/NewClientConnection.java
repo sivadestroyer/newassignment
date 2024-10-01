@@ -19,7 +19,7 @@ public class NewClientConnection implements Runnable {
     }
 
     public void run() {
-        Parsing parser = new Parsing();
+        Parser parser = new Parser();
         try (BufferedInputStream in = new BufferedInputStream(socket.getInputStream());
              OutputStream out = socket.getOutputStream()) {
 

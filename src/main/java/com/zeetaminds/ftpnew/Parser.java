@@ -6,17 +6,15 @@ import com.zeetaminds.ftp.Command;
 import com.zeetaminds.ftp.HandleError;
 import com.zeetaminds.ftp.ListFiles;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.Objects;
 import java.util.logging.Logger;
 
-public class Parsing {
+public class Parser {
 
-    private static final Logger LOG = Logger.getLogger(Parsing.class.getName());
+    private static final Logger LOG = Logger.getLogger(Parser.class.getName());
 
     private static final int BUFFER_SIZE = 1024;
     private static final int MARK_LIMIT = 1024;

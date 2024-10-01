@@ -6,15 +6,14 @@ import com.zeetaminds.client.SendFiles;
 import java.net.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class Parser implements Runnable {
-    private static final Logger LOG = Logger.getLogger(Parser.class.getName());
+public class Parsing implements Runnable {
+    private static final Logger LOG = Logger.getLogger(Parsing.class.getName());
     private final Socket socket;
 
-    public Parser(Socket socket) {
+    public Parsing(Socket socket) {
         this.socket = socket;
     }
 
@@ -50,7 +49,7 @@ public class Parser implements Runnable {
     }
 
     public void run() {
-        Parser process = new Parser(socket);
+        Parsing process = new Parsing(socket);
 
         try (InputStream reader = socket.getInputStream();
              OutputStream out = socket.getOutputStream()) {
