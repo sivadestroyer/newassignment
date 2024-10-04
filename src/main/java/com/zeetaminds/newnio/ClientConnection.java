@@ -2,6 +2,7 @@ package com.zeetaminds.newnio;
 
 
 import com.zeetaminds.ftp.Command;
+import com.zeetaminds.newnio.exceptions.InvalidComandException;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -15,35 +16,31 @@ public class ClientConnection {
     private static final int BUFFER_SIZE = 1024;
 
     private final SocketChannel clientChannel;
-    private final ByteBuffer buffer = ByteBuffer.allocate(BUFFER_SIZE);
     private final Parser parser = new Parser();
+    protected final SessionState sessionState;
 
-    public ClientConnection(SocketChannel clientChannel) {
+    public ClientConnection(SocketChannel clientChannel, boolean isReadable) {
         this.clientChannel = clientChannel;
+        this.sessionState = new SessionState();
+        this.sessionState.isReadable = isReadable;
     }
 
-    public void read() {
-        try {
-            int bytesRead = clientChannel.read(buffer);
-            if (bytesRead == -1) {
-                clientChannel.close();
-                return;
-            }
-
-            // Flip buffer for reading the data
-            buffer.flip();
-
-            // Process the data (parsing and handling command)
-            Command cmd = parser.parse(buffer, clientChannel);
-            if (cmd == null) {
-                LOG.info("null exception");
-                clientChannel.close();  // Close connection on "bye" command
-            } else {
-                cmd.handle();
-            }
-
-            // Clear the buffer for the next read
+    public void read() throws IOException {
+        try{
+            ByteBuffer buffer = sessionState.getBuffer();
             buffer.clear();
+            while(sessionState.isReadable) {
+                // Process the data (parsing and handling command)
+                Command cmd = parser.parse(buffer, clientChannel,sessionState);
+                if (cmd == null) {
+                    LOG.info("null exception");
+                    clientChannel.close();  // Close connection on "bye" command
+                    break;
+                } else {
+                    cmd.handle();
+                }
+            }
+            // Clear the buffer for the next read
 
         } catch (IOException e) {
             LOG.log(Level.SEVERE, "Error reading from socket", e);
@@ -52,6 +49,8 @@ public class ClientConnection {
             } catch (IOException ex) {
                 LOG.log(Level.SEVERE, "Error closing socket", ex);
             }
+        } catch (InvalidComandException e) {
+            throw new RuntimeException(e);
         }
     }
 }

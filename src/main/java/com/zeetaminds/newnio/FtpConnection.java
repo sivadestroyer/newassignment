@@ -34,13 +34,15 @@ public class FtpConnection {
                         ServerSocketChannel server = (ServerSocketChannel) key.channel();
                         SocketChannel clientChannel = server.accept();
                         clientChannel.configureBlocking(false);
-
+                        boolean isReadable=true;
                         // Register the client channel for reading
                         clientChannel.register(selector, SelectionKey.OP_READ,
-                                new ClientConnection(clientChannel));
+                                new ClientConnection(clientChannel, isReadable));
                     } else if (key.isReadable()) {
                         // Read data from the client
+                        boolean isReadable=true;
                         ClientConnection client = (ClientConnection) key.attachment();
+                        client.sessionState.isReadable=true;
                         client.read();
                     }
                 }

@@ -22,8 +22,18 @@ public class SendFiles implements Command {
         this.clientChannel = clientChannel;
     }
 
+    // Protected method to retrieve the file, making it testable
+    protected File getFile(String fileName) {
+        return new File(fileName);
+    }
+
+    // Protected method to retrieve FileInputStream, making it testable
+    protected FileInputStream getFileInputStream(File file) throws IOException {
+        return new FileInputStream(file);
+    }
+
     public void handle() throws IOException {
-        File file = new File(fileName);
+        File file = getFile(fileName); // Refactored to use getFile()
 
         if (file.exists() && file.isFile()) {
             // Write the file size to the buffer first
@@ -34,7 +44,7 @@ public class SendFiles implements Command {
             buffer.clear();
 
             // Use a FileChannel to send the file in chunks
-            try (FileChannel fileChannel = new FileInputStream(file).getChannel()) {
+            try (FileChannel fileChannel = getFileInputStream(file).getChannel()) { // Refactored to use getFileInputStream()
                 long position = 0;
                 long size = file.length();
                 while (position < size) {

@@ -1,5 +1,5 @@
 package com.zeetaminds.newnio;
-
+import com.zeetaminds.newnio.exceptions.InvalidComandException;
 import com.zeetaminds.ftp.Command;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -10,10 +10,11 @@ import java.util.logging.Logger;
 public class Parser {
 
     private static final Logger LOG = Logger.getLogger(Parser.class.getName());
-    private static final int MARK_LIMIT = 1024;
+    private static final int BUFFER_SIZE = 1024;
     String message = "Syntax error in parameters or arguments.\n";
+    int bytesRead=0;
 
-    private Command processCommand(String[] tokens, SocketChannel clientChannel) throws IOException {
+    private Command processCommand(String[] tokens, SocketChannel clientChannel,SessionState sessionState) throws IOException {
         String operation = tokens[0].toUpperCase();
 
         switch (operation) {
@@ -22,23 +23,37 @@ public class Parser {
             case "GET":
                 return tokens.length > 1 ? new SendFiles(tokens[1], clientChannel) : new HandleError(clientChannel, message);
             case "PUT":
-                return tokens.length > 2 ? new ReceiveFiles(tokens[1], clientChannel, Long.parseLong(tokens[2]))
+                return tokens.length > 2 ? new ReceiveFiles(tokens[1], clientChannel, Long.parseLong(tokens[2]),sessionState)
                         : new HandleError(clientChannel, message);
             default:
                 return new HandleError(clientChannel, "unknown command");
         }
     }
 
-    public Command parse(ByteBuffer buffer, SocketChannel clientChannel) throws IOException {
-        byte[] byteArray = new byte[buffer.remaining()];
-        buffer.get(byteArray);
-
-        String commandLine = new String(byteArray, StandardCharsets.UTF_8).trim();
-        if (commandLine.isEmpty()) {
-            return null;  // No command
+    public Command parse(ByteBuffer buffer, SocketChannel clientChannel,SessionState sessionState) throws IOException, InvalidComandException {
+        StringBuilder commandLine = new StringBuilder();
+        if(buffer.position()==0&&buffer.limit()==buffer.capacity()){
+            bytesRead=clientChannel.read(buffer);
+            if(bytesRead==-1) return null;
+            buffer.flip();
         }
+        while(buffer.hasRemaining()&&bytesRead>0){
+            byte b=buffer.get();
+            commandLine.append((char)b);
+            if (b=='\n'){
+                String fullCommand =commandLine.toString().trim();
+                String[] tokens = fullCommand.split(" ");
+                if(buffer.limit()==buffer.position()){
+                    buffer.clear();
+                    sessionState.isReadable=false;
 
-        String[] tokens = commandLine.split(" ");
-        return processCommand(tokens, clientChannel);
+                }
+                return processCommand(tokens,clientChannel,sessionState);
+            }
+            if(commandLine.length()>=BUFFER_SIZE){
+               throw new InvalidComandException("command too long");
+            }
+        }
+        return null;
     }
 }

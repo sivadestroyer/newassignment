@@ -16,35 +16,62 @@ public class ReceiveFiles implements Command {
 
     private final String fileName;
     private final SocketChannel clientChannel;
-    private final long fileLen;
+    private long fileLen;
+    private final SessionState sessionState;
+    long totalBytes = 0;
 
-    public ReceiveFiles(String fileName, SocketChannel clientChannel, long fileLen) {
+    public ReceiveFiles(String fileName, SocketChannel clientChannel, long fileLen,SessionState sessionState) {
         this.fileName = fileName;
         this.clientChannel = clientChannel;
         this.fileLen = fileLen;
+        this.sessionState = sessionState;
     }
 
     public void handle() throws IOException {
-        ByteBuffer buffer = ByteBuffer.allocate(1024); // Buffer for file transfer
-        long totalBytes = 0;
+        FileOutputStream fos = new FileOutputStream(fileName);
+            ByteBuffer buffer1 = ByteBuffer.allocate(1024); // Buffer for file transfer
+            ByteBuffer buffer = sessionState.getBuffer();
+        while(totalBytes<fileLen)
 
-        try (FileOutputStream fos = new FileOutputStream(fileName);
-             FileChannel fileChannel = fos.getChannel()) {
+            {
+                if (buffer.hasRemaining() && (buffer.limit() - buffer.position()) > fileLen
+                        && (buffer.position() != 0)) {
+                    byte[] subsetArray = new byte[(int) fileLen];
+                    buffer.get(subsetArray, 0, (int) fileLen);
+                    buffer1 = ByteBuffer.wrap(subsetArray);
+                    if (buffer.limit() == buffer.position()) {
+                        buffer.clear();
+                    }
+                }
+                if (buffer.hasRemaining() && (buffer.limit() - buffer.position()) < (int) fileLen) {
+                    buffer1 = ByteBuffer.allocate(buffer.remaining());
+                    buffer.clear();
+                }
+                if (buffer.position() == 0) {
+                    int bytesRead = clientChannel.read(buffer1);
+                    buffer1.flip();
+                    if (bytesRead == -1) break;
+                }
+                while (buffer1.hasRemaining() && totalBytes < fileLen) {
 
-            // Read from the clientChannel and write to the file
-            while (totalBytes < fileLen) {
-                int bytesRead = clientChannel.read(buffer);
-                if (bytesRead == -1) {
-                    break;  // End of stream
+                    fos.write(buffer1.get());
+                    totalBytes++;
+
+                }
+                boolean flag=false;
+                while(buffer1.hasRemaining()){
+                    byte b=buffer1.get();
+                    buffer.put(b);
+                    flag=true;
+                }
+                if(flag) {
+                    buffer.flip();
+                    sessionState.isReadable=true;
                 }
 
-                // Flip buffer before writing to file
-                buffer.flip();
-                fileChannel.write(buffer);
-                buffer.clear();
+                buffer1.clear();
 
-                totalBytes += bytesRead;
             }
-        }
+
     }
 }
