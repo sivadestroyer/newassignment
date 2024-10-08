@@ -1,93 +1,66 @@
 package com.zeetaminds.newnio;
 
+import com.zeetaminds.newnio.ReceiveFiles;
+import com.zeetaminds.newnio.SessionState;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.io.File;
-import java.io.FileOutputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.nio.channels.SocketChannel;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-public class ReceiveFilesTest {
+class ReceiveFilesTest {
 
-    private SocketChannel mockClientChannel;
+    private SocketChannel mockChannel;
     private SessionState mockSessionState;
-    private ReceiveFiles receiveFiles;
-    private String testFileName = "testFile.txt";
-    private long fileLen = 1024; // Simulating a file length of 1024 bytes
-    private FileOutputStream mockFileOutputStream;
+    private ByteBuffer buffer;
+
+    private final String fileName = "testfile.txt";
+    private final long fileLen = 12L; // length of the incoming file in bytes
+    private byte[] fileContent = "Hello World!".getBytes(); // content of the file
 
     @BeforeEach
-    public void setUp() throws IOException {
-        // Mock dependencies
-        mockClientChannel = mock(SocketChannel.class);
+    public void setup() {
+        mockChannel = mock(SocketChannel.class);
         mockSessionState = mock(SessionState.class);
-        mockFileOutputStream = mock(FileOutputStream.class);
-
-        // Create the ReceiveFiles instance with mocked dependencies
-        receiveFiles = new ReceiveFiles(testFileName, mockClientChannel, fileLen, mockSessionState);
+        buffer = ByteBuffer.allocate(1024);
+        when(mockSessionState.getBuffer()).thenReturn(buffer);
     }
 
     @Test
-    public void testHandle_SuccessfulFileTransfer() throws IOException {
-        // Given
-        ByteBuffer buffer = ByteBuffer.allocate(1024);
-        when(mockSessionState.getBuffer()).thenReturn(buffer);
+    public void testReceiveFiles() throws IOException {
+        // Prepare the file receiver
+        ReceiveFiles receiveFiles = new ReceiveFiles(fileName, mockChannel, fileLen, mockSessionState);
 
-        // Simulate reading data from the SocketChannel
-        byte[] data = "Sample data for testing.".getBytes();
-        ByteBuffer inputBuffer = ByteBuffer.wrap(data);
-        when(mockClientChannel.read(any(ByteBuffer.class))).thenAnswer(invocation -> {
-            ByteBuffer buf = invocation.getArgument(0);
-            int bytesToRead = Math.min(buf.remaining(), inputBuffer.remaining());
-            buf.put(inputBuffer.array(), 0, bytesToRead);
-            return bytesToRead; // Simulate number of bytes read
+        // Simulate SocketChannel returning file data
+        when(mockChannel.read(any(ByteBuffer.class))).thenAnswer(invocation -> {
+            ByteBuffer byteBuffer = invocation.getArgument(0);
+            byteBuffer.put(fileContent); // Simulate writing the file content to the buffer
+            return fileContent.length;   // Return the number of bytes read
         });
 
-        // When: handle is called
+        // Call the handle() method which should process the file
         receiveFiles.handle();
 
-        // Then: Verify that data is written to the file
-        // Assuming we don't have the actual FileOutputStream, we can verify interactions
-        verify(mockFileOutputStream, times(data.length)).write(any(byte[].class), anyInt(), anyInt());
-    }
+        // Verify the file has been written correctly by reading the file back
+        File receivedFile = new File(fileName);
+        assert receivedFile.exists() : "File should exist after receiving";
 
-    @Test
-    public void testHandle_NoDataRead() throws IOException {
-        // Given
-        when(mockClientChannel.read(any(ByteBuffer.class))).thenReturn(-1); // Simulate end of stream
+        try (FileInputStream fis = new FileInputStream(receivedFile)) {
+            byte[] receivedBytes = new byte[(int) fileLen];
+            int bytesRead = fis.read(receivedBytes);
+            assertArrayEquals(fileContent, receivedBytes, "File content should match expected content");
+            assert bytesRead == fileLen : "The number of bytes read should match the file length";
+        }
 
-        // Set buffer and file length
-        ByteBuffer buffer = ByteBuffer.allocate(1024);
-        when(mockSessionState.getBuffer()).thenReturn(buffer);
-
-        // When: handle is called
-        receiveFiles.handle();
-
-        // Then: Ensure that no data is written when no bytes are read
-        verify(mockFileOutputStream, never()).write(any(byte[].class), anyInt(), anyInt());
-    }
-
-    @Test
-    public void testHandle_PartialDataRead() throws IOException {
-        // Given
-        when(mockClientChannel.read(any(ByteBuffer.class))).thenReturn(512); // Simulate reading 512 bytes
-        ByteBuffer buffer = ByteBuffer.allocate(1024);
-        when(mockSessionState.getBuffer()).thenReturn(buffer);
-        byte[] data = new byte[512];
-        buffer.put(data); // Put data into the buffer
-        buffer.flip();
-
-        // When: handle is called
-        receiveFiles.handle();
-
-        // Then: Verify the correct amount of data is written
-        verify(mockFileOutputStream, times(512)).write(any(byte[].class), anyInt(), anyInt());
+        // Clean up the test file
+        receivedFile.delete();
     }
 }

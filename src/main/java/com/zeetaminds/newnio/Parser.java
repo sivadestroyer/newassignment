@@ -21,7 +21,8 @@ public class Parser {
             case "LIST":
                 return new ListFiles(clientChannel);
             case "GET":
-                return tokens.length > 1 ? new SendFiles(tokens[1], clientChannel) : new HandleError(clientChannel, message);
+                return tokens.length > 1 ? new SendFiles(tokens[1], clientChannel)
+                        : new HandleError(clientChannel, message);
             case "PUT":
                 return tokens.length > 2 ? new ReceiveFiles(tokens[1], clientChannel, Long.parseLong(tokens[2]),sessionState)
                         : new HandleError(clientChannel, message);
@@ -30,14 +31,10 @@ public class Parser {
         }
     }
 
-    public Command parse(ByteBuffer buffer, SocketChannel clientChannel,SessionState sessionState) throws IOException, InvalidComandException {
+    public Command parse(ByteBuffer buffer, SocketChannel clientChannel, SessionState sessionState)
+            throws IOException, InvalidComandException {
         StringBuilder commandLine = new StringBuilder();
-        if(buffer.position()==0&&buffer.limit()==buffer.capacity()){
-            bytesRead=clientChannel.read(buffer);
-            if(bytesRead==-1) return null;
-            buffer.flip();
-        }
-        while(buffer.hasRemaining()&&bytesRead>0){
+        while(buffer.remaining()>0){
             byte b=buffer.get();
             commandLine.append((char)b);
             if (b=='\n'){
@@ -48,12 +45,16 @@ public class Parser {
                     sessionState.isReadable=false;
 
                 }
+                commandLine.setLength(0);
                 return processCommand(tokens,clientChannel,sessionState);
+            }
+            if(buffer.limit()==buffer.position()){
+                buffer.clear();
             }
             if(commandLine.length()>=BUFFER_SIZE){
                throw new InvalidComandException("command too long");
             }
         }
-        return null;
+        return new HandleError(clientChannel, "");
     }
 }
